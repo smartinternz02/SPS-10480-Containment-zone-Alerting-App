@@ -14,12 +14,13 @@ app.config['MYSQL_PASSWORD'] = 'g1rMHVIhIq'
 app.config['MYSQL_DB'] = 'F5shCxBMxe'
 
 mysql = MySQL(app)
+
 # Api's
 
 
 @app.route("/")
 def home():
-    return render_template('home.html')
+    return render_template('login.html')
 
 
 @app.route("/login")
@@ -42,13 +43,25 @@ def signup():
         # initialize the cursor
         signup_cursor = mysql.connection.cursor()
 
-        signup_cursor.execute(
-            'INSERT INTO USERS(user_name,user_email,user_password) VALUES(% s,% s,% s)', (
-                name, email, str(pw_hash)
-            )
+        # check whether user already exists
+        user_result = signup_cursor.execute(
+            "SELECT * FROM USERS WHERE user_email=%s", [email]
         )
+        if(user_result > 0):
+            signup_cursor.close()
+            return render_template('signup.html', error=True)
+        else:
+            # execute the query
+            signup_cursor.execute(
+                'INSERT INTO USERS(user_name,user_email,user_password) VALUES(%s,%s,%s)', (
+                    name, email, str(pw_hash)
+                )
+            )
 
-        return render_template('signup.html', error=False)
+            mysql.connection.commit()
+            signup_cursor.close()
+            return redirect(url_for('home'))
+
     return render_template('signup.html', error=False)
 
 
