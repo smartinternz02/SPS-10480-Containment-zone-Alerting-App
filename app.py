@@ -119,7 +119,7 @@ def signup():
     return render_template('signup.html', error=False)
 
 
-@app.route("/home")
+@app.route("/home", methods=["POST", "GET"])
 def home():
     return render_template('home.html', name=session['name'], email=session['email'], id=session['id'])
 
