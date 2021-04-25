@@ -66,8 +66,6 @@ def login():
         if(user_result > 0):
             data = signup_cursor.fetchone()
             data_password = data[3]
-            print(data_password)
-            print(data[0])
             if(verify_password(password, data_password)):
                 signup_cursor.close()
                 session['id'] = data[0]
@@ -120,12 +118,16 @@ def signup():
 
 @app.route("/home", methods=["POST", "GET"])
 def home():
+    if(session['id'] == None):
+        return redirect(url_for('login'))
+
     if(request.method == "POST"):
         # get data
         lat = request.form["lat"]
         lon = request.form["lon"]
         vis = 0
-        print(lat+" "+lon)
+        if(lat == "" or lon == ""):
+            return render_template('home.html', name=session['name'], email=session['email'], id=session['id'], success=0)
 
         # create a location cursor
         location_cursor = mysql.connection.cursor()
@@ -140,6 +142,34 @@ def home():
         location_cursor.close()
         return render_template('home.html', name=session['name'], email=session['email'], id=session['id'], success=True)
     return render_template('home.html', name=session['name'], email=session['email'], id=session['id'])
+
+
+@app.route("/logout")
+def logout():
+    # remove the username from the session if it is there
+    session['id'] = None
+    session['name'] = None
+    session['email'] = None
+    return redirect(url_for('login'))
+
+
+@app.route("/data")
+def data():
+    if(session['id'] == None):
+        return redirect(url_for('login'))
+
+    location_cursor = mysql.connection.cursor()
+
+    # check whether user already exists
+    user_result = location_cursor.execute(
+        "SELECT * FROM LOCATION"
+    )
+    if(user_result == 0):
+        return render_template("data.html", responses=0)
+    else:
+        res = location_cursor.fetchall()
+        print(res)
+        return render_template("data.html", responses=res)
 
 
 # main
