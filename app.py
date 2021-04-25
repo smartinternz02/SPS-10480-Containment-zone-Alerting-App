@@ -78,7 +78,6 @@ def login():
                 return render_template('login.html', error=1)
         else:
             return render_template('login.html', error=2)
-
     return render_template('login.html', error=3)
 
 
@@ -121,6 +120,25 @@ def signup():
 
 @app.route("/home", methods=["POST", "GET"])
 def home():
+    if(request.method == "POST"):
+        # get data
+        lat = request.form["lat"]
+        lon = request.form["lon"]
+        vis = 0
+        print(lat+" "+lon)
+
+        # create a location cursor
+        location_cursor = mysql.connection.cursor()
+
+        # Execute the query
+        location_cursor.execute(
+            'INSERT INTO LOCATION(location_lat,location_long,location_visited) VALUES(%s,%s,%s)', (
+                lat, lon, vis
+            )
+        )
+        mysql.connection.commit()
+        location_cursor.close()
+        return render_template('home.html', name=session['name'], email=session['email'], id=session['id'], success=True)
     return render_template('home.html', name=session['name'], email=session['email'], id=session['id'])
 
 
