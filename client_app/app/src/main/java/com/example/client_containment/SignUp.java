@@ -2,36 +2,35 @@ package com.example.client_containment;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
+
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.HttpHeaderParser;
+
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
+
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
+
 
 
 public class SignUp extends AppCompatActivity {
     private EditText name;
     private EditText email;
     private EditText password;
+    SharedPreferences sharedpreferences;
 
 
     @Override
@@ -41,6 +40,11 @@ public class SignUp extends AppCompatActivity {
         name = findViewById(R.id.name);
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
+        sharedpreferences = getApplicationContext().getSharedPreferences("user_data", 0);
+        if(sharedpreferences.getAll().size() == 3){
+            Intent intent = new Intent(this,MainActivity.class);
+            startActivity(intent);
+        }
 
     }
 
@@ -58,8 +62,6 @@ public class SignUp extends AppCompatActivity {
             postparams.put("name", name);
             postparams.put("email", email);
             postparams.put("password", password);
-
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -69,6 +71,23 @@ public class SignUp extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d("response",response.toString());
+
+                        try {
+                            int userId = response.getInt("id");
+
+                            SharedPreferences.Editor editor = sharedpreferences.edit();
+
+                            editor.putString("name", name);
+                            editor.putString("email", email);
+                            editor.putInt("id", userId );
+                            editor.commit();
+                            Intent intent = new Intent(SignUp.this,MainActivity.class);
+                            startActivity(intent);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
                     }
                 },
                 new Response.ErrorListener() {

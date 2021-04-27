@@ -208,7 +208,7 @@ def upload():
             )
             if(id_result > 0):
                 id = signup_cursor.fetchone()
-                return {"id": id}
+                return {"id": id[0]}
             signup_cursor.close()
 
     return {"status": "failure"}
