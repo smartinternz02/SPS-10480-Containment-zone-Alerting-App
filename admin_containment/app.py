@@ -172,14 +172,14 @@ def data():
         return render_template("data.html", responses=res)
 
 
-@app.route("/android_sign_up")
+@app.route("/android_sign_up", methods=["POST"])
 def upload():
     if(request.method == "POST"):
 
         # get the data from the form
-        name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
+        name = request.json['name']
+        email = request.json['email']
+        password = request.json['password']
 
         # hash the password
         pw_hash = create_bcrypt_hash(password)
@@ -203,8 +203,15 @@ def upload():
             )
 
             mysql.connection.commit()
+            id_result = signup_cursor.execute(
+                'SELECT user_id FROM USERS WHERE user_email = %s', [email]
+            )
+            if(id_result > 0):
+                id = signup_cursor.fetchone()
+                return {"id": id}
             signup_cursor.close()
-            return {'status': 'success'}
+
+    return {"status": "failure"}
 
 
 @app.route("/get_all_users")
