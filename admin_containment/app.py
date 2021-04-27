@@ -231,6 +231,31 @@ def getusers():
         return json.dumps(json_data)
 
 
+@app.route("/post_user_location_data", methods=["POST"])
+def post_user_location():
+    if(request.method == "POST"):
+
+        # get the data from the form
+        lat = request.json['lat']
+        lon = request.json['long']
+        id = request.json['id']
+        ts = request.json['timestamp']
+
+        # initialize the cursor
+        user_location_cursor = mysql.connection.cursor()
+
+        # execute the query
+        user_location_cursor.execute(
+            'INSERT INTO USER_LOCATION(location_lat,location_long,user_id,timestamp) VALUES(%s,%s,%s,%s)', (
+                lat, lon, id, ts
+            )
+        )
+
+        mysql.connection.commit()
+
+        return {"response": "success"}
+
+
 # main
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)

@@ -98,6 +98,5 @@ public class SignUp extends AppCompatActivity {
                 });
 
         queue.add(jsonObjReq);
-
     }
 }
