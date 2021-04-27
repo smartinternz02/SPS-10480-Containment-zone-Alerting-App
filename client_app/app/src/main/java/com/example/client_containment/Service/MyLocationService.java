@@ -61,37 +61,6 @@ public class MyLocationService extends BroadcastReceiver {
 
     }
 
-    private ArrayList<Location> getDataUsingVolley(Context context) {
-        final RequestQueue queue = Volley.newRequestQueue(context);
-
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                JSONArray jsonArray = response;
-                try {
-                    for(int i=0;i<jsonArray.length();i++)
-                    {
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        String albumname = jsonObject.getString("title");
-                        String albumimageurl = jsonObject.getString("image");
-                    }
-                }
-                catch (Exception w)
-                {
-                    Toast.makeText(context,w.getMessage(),Toast.LENGTH_LONG).show();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(context,error.getMessage(),Toast.LENGTH_LONG).show();
-            }
-        });
-        queue.add(jsonArrayRequest);
-    }
-
-
-}
 
     private void postDataUsingVolley(String lat,String lon,Context context) {
         final RequestQueue queue = Volley.newRequestQueue(context);
