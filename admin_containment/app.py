@@ -208,7 +208,7 @@ def upload():
             )
             if(id_result > 0):
                 id = signup_cursor.fetchone()
-                return {"id": id}
+                return {"id": id[0]}
             signup_cursor.close()
 
     return {"status": "failure"}
@@ -229,6 +229,51 @@ def getusers():
         for result in rv:
             json_data.append(dict(zip(row_headers, result)))
         return json.dumps(json_data)
+
+
+@app.route("/post_user_location_data", methods=["POST"])
+def post_user_location():
+    if(request.method == "POST"):
+
+        # get the data from the form
+        lat = request.json['lat']
+        lon = request.json['long']
+        id = request.json['id']
+        ts = request.json['timestamp']
+
+        # initialize the cursor
+        user_location_cursor = mysql.connection.cursor()
+
+        # execute the query
+        user_location_cursor.execute(
+            'INSERT INTO USER_LOCATION(location_lat,location_long,user_id,timestamp) VALUES(%s,%s,%s,%s)', (
+                lat, lon, id, ts
+            )
+        )
+
+        mysql.connection.commit()
+
+        return {"response": "success"}
+
+
+@app.route("/location_data")
+def location_data():
+    location_cursor = mysql.connection.cursor()
+
+    # check whether user already exists
+    user_result = location_cursor.execute(
+        "SELECT * FROM LOCATION"
+    )
+    if(user_result != 0):
+        res = location_cursor.fetchall()
+        print(res)
+        row_headers = [x[0] for x in location_cursor.description]
+        json_data = []
+        for result in res:
+            json_data.append(dict(zip(row_headers, result)))
+        return json.dumps(json_data)
+    else:
+        return {"response": "failure"}
 
 
 # main
