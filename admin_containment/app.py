@@ -4,7 +4,7 @@ from flask import *
 from jinja2.utils import select_autoescape
 import bcrypt
 from flask_mysqldb import MySQL
-import MySQLdb.cursors
+import json
 
 # initialization
 app = Flask(__name__)
@@ -104,8 +104,8 @@ def signup():
         else:
             # execute the query
             signup_cursor.execute(
-                'INSERT INTO USERS(user_name,user_email,user_password) VALUES(%s,%s,%s)', (
-                    name, email, str(pw_hash)
+                'INSERT INTO USERS(user_name,user_email,user_password,user_type) VALUES(%s,%s,%s,%s)', (
+                    name, email, str(pw_hash), "2"
                 )
             )
 
@@ -170,6 +170,65 @@ def data():
         res = location_cursor.fetchall()
         print(res)
         return render_template("data.html", responses=res)
+
+
+@app.route("/android_sign_up", methods=["POST"])
+def upload():
+    if(request.method == "POST"):
+
+        # get the data from the form
+        name = request.json['name']
+        email = request.json['email']
+        password = request.json['password']
+
+        # hash the password
+        pw_hash = create_bcrypt_hash(password)
+
+        # initialize the cursor
+        signup_cursor = mysql.connection.cursor()
+
+        # check whether user already exists
+        user_result = signup_cursor.execute(
+            "SELECT * FROM USERS WHERE user_email=%s", [email]
+        )
+        if(user_result > 0):
+            signup_cursor.close()
+            return {'status': 'failure'}
+        else:
+            # execute the query
+            signup_cursor.execute(
+                'INSERT INTO USERS(user_name,user_email,user_password,user_type) VALUES(%s,%s,%s,%s)', (
+                    name, email, str(pw_hash), "1"
+                )
+            )
+
+            mysql.connection.commit()
+            id_result = signup_cursor.execute(
+                'SELECT user_id FROM USERS WHERE user_email = %s', [email]
+            )
+            if(id_result > 0):
+                id = signup_cursor.fetchone()
+                return {"id": id}
+            signup_cursor.close()
+
+    return {"status": "failure"}
+
+
+@app.route("/get_all_users")
+def getusers():
+    signup_cursor = mysql.connection.cursor()
+
+    # check whether user already exists
+    user_result = signup_cursor.execute(
+        "SELECT * FROM USERS"
+    )
+    if(user_result > 0):
+        rv = signup_cursor.fetchall()
+        row_headers = [x[0] for x in signup_cursor.description]
+        json_data = []
+        for result in rv:
+            json_data.append(dict(zip(row_headers, result)))
+        return json.dumps(json_data)
 
 
 # main
