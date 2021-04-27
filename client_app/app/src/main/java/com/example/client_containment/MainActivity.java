@@ -90,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
     private void buildLocationRequest(){
         locationRequest = new LocationRequest();
         locationRequest .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(5000);
-        locationRequest.setFastestInterval(3000);
+        locationRequest.setInterval(3000);
+        locationRequest.setFastestInterval(1000);
         locationRequest.setSmallestDisplacement(10f);
     }
     public void updateTextView(String location){

@@ -256,6 +256,26 @@ def post_user_location():
         return {"response": "success"}
 
 
+@app.route("/location_data")
+def location_data():
+    location_cursor = mysql.connection.cursor()
+
+    # check whether user already exists
+    user_result = location_cursor.execute(
+        "SELECT * FROM LOCATION"
+    )
+    if(user_result != 0):
+        res = location_cursor.fetchall()
+        print(res)
+        row_headers = [x[0] for x in location_cursor.description]
+        json_data = []
+        for result in res:
+            json_data.append(dict(zip(row_headers, result)))
+        return json.dumps(json_data)
+    else:
+        return {"response": "failure"}
+
+
 # main
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
