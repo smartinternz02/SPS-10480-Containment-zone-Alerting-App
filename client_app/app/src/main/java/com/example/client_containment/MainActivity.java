@@ -6,8 +6,10 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     LocationRequest locationRequest;
     TextView loc;
     FusedLocationProviderClient fusedLocationProviderClient;
+    SharedPreferences sharedPreferences;
 
     public static MainActivity getInstance() {
         return instance;
@@ -39,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         instance = this;
         loc = findViewById(R.id.location_text);
+        sharedPreferences = getApplicationContext().getSharedPreferences("user_data", 0);
+        Log.d("shared_pref",sharedPreferences.getString("name","0"));
         Dexter.withActivity(this)
                 .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                 .withListener(new PermissionListener() {
