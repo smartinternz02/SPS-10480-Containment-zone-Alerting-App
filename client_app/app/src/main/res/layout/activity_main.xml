@@ -7,16 +7,11 @@
     android:gravity="center"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/button_start_location"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/start_location_update"/>
-    <Button
-        android:id="@+id/button_stop_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/stop_location_update"/>
+        android:id="@+id/location_text"
+        android:textColor="@color/black"></TextView>
 
 
 </LinearLayout>

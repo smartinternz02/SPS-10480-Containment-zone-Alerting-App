@@ -1,122 +1,100 @@
 package com.example.client_containment;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
-import android.app.ActivityManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.client_containment.Service.Constants;
-import com.example.client_containment.Service.LocationService;
+import com.example.client_containment.Service.MyLocationService;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
+
 
 public class MainActivity extends AppCompatActivity {
+    static MainActivity instance;
+    LocationRequest locationRequest;
+    TextView loc;
+    FusedLocationProviderClient fusedLocationProviderClient;
 
-    private static final int REQUEST_LOCATION_PERMISSION = 1;
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
-            String message = intent.getStringExtra("Status");
-            Bundle b = intent.getBundleExtra("Location");
-            LocationResult lastKnownLoc = (LocationResult) b.getParcelable("Location");
-            String lat = String.valueOf(lastKnownLoc.getLastLocation().getLatitude());
-            String lon = String.valueOf(lastKnownLoc.getLastLocation().getLongitude());
-            String loc = lat + " "+ lon;
-            if (lastKnownLoc != null) {
-                Toast.makeText(context,loc,Toast.LENGTH_SHORT).show();
-            }
-//             Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-        }
-    };
+    public static MainActivity getInstance() {
+        return instance;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("LocationUpdate"));
-        findViewById(R.id.button_start_location).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(ContextCompat.checkSelfPermission(getApplicationContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
-                    ActivityCompat.requestPermissions(
-                            MainActivity.this,
-                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                            REQUEST_LOCATION_PERMISSION
-                    );
-                }else{
-                    startLocationService();
-                }
-            }
-        });
-        findViewById(R.id.button_stop_location).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopLocationService();
-            }
-        });
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == REQUEST_LOCATION_PERMISSION && grantResults.length > 0){
-            if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                startLocationService();
-            } else {
-                Toast.makeText(this,"NO permisson",Toast.LENGTH_LONG)
-                        .show();
-            }
-        }
-    }
-
-    private boolean isLocationServiceRunning() {
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        if(activityManager != null){
-            for(ActivityManager.RunningServiceInfo service :
-            activityManager.getRunningServices(Integer.MAX_VALUE)){
-                if(LocationService.class.getName().equals(service.service.getClassName())){
-                    if(service.foreground){
-                        return true;
+        instance = this;
+        loc = findViewById(R.id.location_text);
+        Dexter.withActivity(this)
+                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                .withListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        updateLocation();
                     }
-                }
-            }
-            return false;
-        }
-        return false;
-    }
-    private void startLocationService() {
-        if(!isLocationServiceRunning()){
-            Intent intent = new Intent(getApplicationContext(),LocationService.class);
-            intent.setAction(Constants.ACTION_START_LOCATION_SERVICE);
-            startService(intent);
-            Toast.makeText(this,"Location Service Started",Toast.LENGTH_LONG)
-                    .show();
-        }
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        Toast.makeText(MainActivity.this, "No location", Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+
+                    }
+                }).check();
+
     }
 
-    private void stopLocationService() {
-        if(!isLocationServiceRunning()){
-            Intent intent = new Intent(getApplicationContext(),LocationService.class);
-            intent.setAction(Constants.ACTION_STOP_LOCATION_SERVICE);
-            startService(intent);
-            Toast.makeText(this,"Location Service Stopped",Toast.LENGTH_LONG)
-                    .show();
+    private void updateLocation() {
+        buildLocationRequest();
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, getPendingIntent());
+    }
+
+    private PendingIntent getPendingIntent() {
+        Intent intent = new Intent(this, MyLocationService.class);
+        intent.setAction(MyLocationService.ACTION_PROCESS_UPDATE);
+        return PendingIntent.getBroadcast(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void buildLocationRequest(){
+        locationRequest = new LocationRequest();
+        locationRequest .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(3000);
+        locationRequest.setSmallestDisplacement(10f);
+    }
+    public void updateTextView(String location){
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+               loc.setText(location);
+            }
+        });
     }
 }
