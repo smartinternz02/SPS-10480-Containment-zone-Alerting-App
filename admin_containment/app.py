@@ -5,6 +5,7 @@ from jinja2.utils import select_autoescape
 import bcrypt
 from flask_mysqldb import MySQL
 import json
+import smtplib
 
 # initialization
 app = Flask(__name__)
@@ -19,6 +20,21 @@ app.config['MYSQL_DB'] = 'F5shCxBMxe'
 mysql = MySQL(app)
 
 # functions
+
+
+def send_mail(email):
+    # creates SMTP session
+    s = smtplib.SMTP('smtp.gmail.com', 587)
+    # start TLS for security
+    s.starttls()
+    # Authentication
+    s.login("dutia28@gmail.com", "Varun@1206")
+    # message to be sent
+    message = "You are getting into a containment zone"
+    # sending the mail
+    s.sendmail("dutia28@gmail.com", email, message)
+    # terminating the session
+    s.quit()
 
 
 def create_bcrypt_hash(password):
@@ -274,6 +290,15 @@ def location_data():
         return json.dumps(json_data)
     else:
         return {"response": "failure"}
+
+
+@app.route("/send_trigger")
+def send_trigger():
+    if(request.method == "POST"):
+        # get the data from the form
+        email = request.json['email']
+        send_mail(email)
+        return {"response": "success"}
 
 
 # main
