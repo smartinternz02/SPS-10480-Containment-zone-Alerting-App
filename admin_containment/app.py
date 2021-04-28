@@ -297,7 +297,28 @@ def send_trigger():
     if(request.method == "POST"):
         # get the data from the form
         email = request.json['email']
-        send_mail(email)
+        location_id = request.json['id']
+        location_cursor = mysql.connection.cursor()
+
+        # check whether user already exists
+        user_result = location_cursor.execute(
+            "SELECT location_visited FROM LOCATION WHERE location_id=%s", [
+                location_id]
+        )
+        if(user_result == 0):
+            return {"response": "failure"}
+        else:
+            res = location_cursor.fetchone()
+            print(res[0])
+            visited = res[0]
+            visited = visited+1
+            location_cursor.execute(
+                "UPDATE LOCATION SET location_visited = %s WHERE location_id=%s",
+                (visited, location_id)
+            )
+            mysql.connection.commit()
+
+        # send_mail(email)
         return {"response": "success"}
 
 
