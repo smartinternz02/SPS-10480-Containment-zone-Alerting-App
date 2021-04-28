@@ -292,7 +292,7 @@ def location_data():
         return {"response": "failure"}
 
 
-@app.route("/send_trigger")
+@app.route("/send_trigger", methods=["POST"])
 def send_trigger():
     if(request.method == "POST"):
         # get the data from the form
