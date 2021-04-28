@@ -5,6 +5,7 @@ from jinja2.utils import select_autoescape
 import bcrypt
 from flask_mysqldb import MySQL
 import json
+import smtplib
 
 # initialization
 app = Flask(__name__)
@@ -19,6 +20,21 @@ app.config['MYSQL_DB'] = 'F5shCxBMxe'
 mysql = MySQL(app)
 
 # functions
+
+
+def send_mail(email):
+    # creates SMTP session
+    s = smtplib.SMTP('smtp.gmail.com', 587)
+    # start TLS for security
+    s.starttls()
+    # Authentication
+    s.login("dutia28@gmail.com", "Varun@1206")
+    # message to be sent
+    message = "You are getting into a containment zone"
+    # sending the mail
+    s.sendmail("dutia28@gmail.com", email, message)
+    # terminating the session
+    s.quit()
 
 
 def create_bcrypt_hash(password):
@@ -274,6 +290,36 @@ def location_data():
         return json.dumps(json_data)
     else:
         return {"response": "failure"}
+
+
+@app.route("/send_trigger", methods=["POST"])
+def send_trigger():
+    if(request.method == "POST"):
+        # get the data from the form
+        email = request.json['email']
+        location_id = request.json['id']
+        location_cursor = mysql.connection.cursor()
+
+        # check whether user already exists
+        user_result = location_cursor.execute(
+            "SELECT location_visited FROM LOCATION WHERE location_id=%s", [
+                location_id]
+        )
+        if(user_result == 0):
+            return {"response": "failure"}
+        else:
+            res = location_cursor.fetchone()
+            print(res[0])
+            visited = res[0]
+            visited = visited+1
+            location_cursor.execute(
+                "UPDATE LOCATION SET location_visited = %s WHERE location_id=%s",
+                (visited, location_id)
+            )
+            mysql.connection.commit()
+
+        # send_mail(email)
+        return {"response": "success"}
 
 
 # main
