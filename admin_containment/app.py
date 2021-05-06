@@ -5,7 +5,9 @@ from jinja2.utils import select_autoescape
 import bcrypt
 from flask_mysqldb import MySQL
 import json
-import smtplib
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
 
 # initialization
 app = Flask(__name__)
@@ -23,18 +25,21 @@ mysql = MySQL(app)
 
 
 def send_mail(email):
-    # creates SMTP session
-    s = smtplib.SMTP('smtp.gmail.com', 587)
-    # start TLS for security
-    s.starttls()
-    # Authentication
-    s.login("dutia28@gmail.com", "Varun@1206")
-    # message to be sent
-    message = "You are getting into a containment zone"
-    # sending the mail
-    s.sendmail("dutia28@gmail.com", email, message)
-    # terminating the session
-    s.quit()
+    message = Mail(from_email='developer.varundutia@gmail.com',
+                   to_emails='varundutia.h@gmail.com',
+                   subject='caution',
+                   plain_text_content='Please Stay Safe',
+                   html_content='<h2>You are entering into a containment Zone</h2>')
+
+    try:
+        sg = SendGridAPIClient(
+            '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')
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+    except Exception as e:
+        print(e.message)
 
 
 def create_bcrypt_hash(password):
