@@ -26,7 +26,7 @@ mysql = MySQL(app)
 
 def send_mail(email):
     message = Mail(from_email='developer.varundutia@gmail.com',
-                   to_emails='varundutia.h@gmail.com',
+                   to_emails=email,
                    subject='caution',
                    plain_text_content='Please Stay Safe',
                    html_content='<h2>You are entering into a containment Zone</h2>')
