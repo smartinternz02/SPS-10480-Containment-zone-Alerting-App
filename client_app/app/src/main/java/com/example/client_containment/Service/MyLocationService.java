@@ -83,6 +83,7 @@ public class MyLocationService extends BroadcastReceiver {
                                 alreadyVisited.setLatitude(latitude);
                                 if(l.distanceTo(alreadyVisited) != 0){
                                     float distanceInMeters = l.distanceTo(location);
+                                    Log.d("dis",String.valueOf(distanceInMeters));
                                     if(distanceInMeters < 100){
                                         sendMailUsingVolley(context,locationId);
                                         SharedPreferences.Editor editor = sharedPreferences.edit();

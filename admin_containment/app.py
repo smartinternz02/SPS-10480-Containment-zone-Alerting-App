@@ -25,6 +25,7 @@ mysql = MySQL(app)
 
 
 def send_mail(email):
+    print(email)
     message = Mail(from_email='developer.varundutia@gmail.com',
                    to_emails=email,
                    subject='caution',
@@ -33,11 +34,8 @@ def send_mail(email):
 
     try:
         sg = SendGridAPIClient(
-            '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')
+            '')
         response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
     except Exception as e:
         print(e.message)
 
