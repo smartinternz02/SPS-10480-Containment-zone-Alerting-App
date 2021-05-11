@@ -26,7 +26,7 @@ mysql = MySQL(app)
 
 def send_mail(email):
     print(email)
-    message = Mail(from_email='developer.varundutia@gmail.com',
+    message = Mail(from_email='varundutia.h@gmail.com',
                    to_emails=email,
                    subject='caution',
                    plain_text_content='Please Stay Safe',
@@ -34,10 +34,13 @@ def send_mail(email):
 
     try:
         sg = SendGridAPIClient(
-            '')
+            'SG.7BJDtQDlS8unH0r5_TufVQ.Ykpcz19QcqgcNwYZC3a0mNRPhGksG117YURqOTa2HL')
         response = sg.send(message)
+        print(response.status.code)
+        print(response.body)
+        print(response.headers)
     except Exception as e:
-        print(e.message)
+        print(e)
 
 
 def create_bcrypt_hash(password):

@@ -9,3 +9,5 @@ To run the admin app pip install requirements.txt in a virtual environment of py
 
 To make the api's work properly update the android code by replacing the IP address of your local machine.
 
+The video of the working is attached
+
