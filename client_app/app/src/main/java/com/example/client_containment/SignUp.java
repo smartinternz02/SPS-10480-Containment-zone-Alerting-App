@@ -40,7 +40,11 @@ public class SignUp extends AppCompatActivity {
         name = findViewById(R.id.name);
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
+
         sharedpreferences = getApplicationContext().getSharedPreferences("user_data", 0);
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.clear();
+        editor.commit();
         if(sharedpreferences.getAll().size() >= 3){
             Intent intent = new Intent(this,MainActivity.class);
             startActivity(intent);
